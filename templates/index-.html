@@ -12,7 +12,26 @@
       background-size: cover; 
       color: black;   
     }
-}
+    .progress {
+      margin: 50px auto;
+      padding: 0px;
+      width: 100%;
+      max-width: 500px;
+      background: blue;
+      border: 1px solid #000;
+      border-radius: 5px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress .progress__bar {
+      height: 100%;
+      width: 0;
+      border-radius: 4px;
+      background: red;
+      transition: 0.3s;
+    }
+    
   </style>
 </head>
 
@@ -23,12 +42,15 @@
 </p>
 
 <div id = 'vis'></div>
-  
+
+<div class="progress"> 
+  <div id="download" class="progress__bar"></div>
+</div>
 <script>
 var data = {{ name|tojson }}
 console.log(data)
 
-function goldlineGraph()
+function goldlineGraph(selected_val)
 {
     var margin = {top: 20, right: 50, bottom: 50, left: 60},
         width = 460 - margin.left - margin.right,
@@ -40,13 +62,17 @@ function goldlineGraph()
       .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
+        .style("position","fixed")
+        .style("top","40%")
+        .style("left","3%")
+        .style('background', 'white')
       .append("g")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
               
     console.log('Here')
-    var golddiff = data[3];
-    console.log(golddiff)
+    var golddiff = data[3].slice(0, selected_val);
+    console.log('Gold here: ', golddiff, selected_val)
     
     min = Math.min(...golddiff)
     max = Math.max(...golddiff)
@@ -66,7 +92,7 @@ function goldlineGraph()
     console.log('Finally')
     console.log(arr)
     
-    var xScale = d3.scaleLinear().domain([0, 30]).range([0, width]),
+    var xScale = d3.scaleLinear().domain([0, golddiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
     
     svg2.append("g")
@@ -104,7 +130,7 @@ function goldlineGraph()
 	  .text("Gold Difference");
 }
 
-function killlineGraph()
+function killlineGraph(selected_val)
 {
     var margin = {top: 20, right: 50, bottom: 50, left: 60},
         width = 460 - margin.left - margin.right,
@@ -116,12 +142,16 @@ function killlineGraph()
       .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
+        .style("position","fixed")
+        .style("top","40%")
+        .style("left","75%")
+        .style('background', 'white')
       .append("g")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
               
     console.log('Here')
-    var killdiff = data[8];
+    var killdiff = data[8].slice(0, selected_val);
     console.log(killdiff)
     
     min = Math.min(...killdiff)
@@ -142,7 +172,7 @@ function killlineGraph()
     console.log('Finally')
     console.log(arr)
     
-    var xScale = d3.scaleLinear().domain([0, 30]).range([0, width]),
+    var xScale = d3.scaleLinear().domain([0, killdiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
     
     svg3.append("g")
@@ -180,47 +210,34 @@ function killlineGraph()
 	  .text("Kill Difference");
 }
 
-function pieChart(selected_val)
+function odds(selected_val)
 {
-    var width = 200, height = 200, radius = Math.min(width, height) / 2;
-    var color = d3.scaleOrdinal() 	
-                  .range(["#FF0000","#0000FF"]);
-    
-    category_count = [];
-    category_count.push({key:'red', value:data[0][selected_val]})
-    category_count.push({key:'blue', value:data[1][selected_val]})
-    
-    var pie = d3.pie() 	
-    .value(function(d) { return d.value; })(category_count);
-    
-    var arc = d3.arc() 	
-    .outerRadius(radius - 10) 	
-    .innerRadius(0);  
-    
-    var labelArc = d3.arc() 	
-    .outerRadius(radius - 100)
-    .innerRadius(radius - 100);
-    
-    var svg1 = d3.select("#vis") 	
-    .append("svg") 	
-    .attr("width", width) 	
-    .attr("height", height) 		
-    .append("g") 		
-    .attr("transform", "translate(" + width/2 + "," + height/2 +")");
-    
-    var g = svg1.selectAll("arc") 	
-    .data(pie) 	
-    .enter().append("g") 	
-    .attr("class", "arc");
-    
-    g.append("path") 	
-    .attr("d", arc) 	
-    .style("fill", function(d) { return color(d.data.key);});
-    
-    g.append("text") 	
-    .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
-    .style("fill", "#fff")
-    .style("font-size", "2.0em");
+    // Edited here- load data
+    let progressbar = document.getElementById("download");
+
+    function updateProgressBar(value) {
+      if (value >= 0 && value <= 100) {
+        progressbar.style.width = value + "%"; 
+      }
+    }
+
+    function handleInput(value) {
+      console.log("hello")
+      //let value = document.getElementById('set-value').value;
+      if (value > 100) {
+        value = 100;
+        document.getElementById('set-value').value = 100;
+      }
+      if (value < 0) {
+        value = 0;
+        document.getElementById('set-value').value = 0;
+      }
+      
+      updateProgressBar(value);
+    }
+    console.log(data[0][selected_val])
+    handleInput(Math.round(data[0][selected_val]));
+    //End-edit
 }
 
 // bubbleChart creation function; instantiate new bubble chart given a DOM element to display it in and a dataset to visualise
@@ -565,13 +582,12 @@ d3.select("#time").on("input", function() {
     //myBubbleChart = null;
     myBubbleChart = bubbleChart(selected_val);
     clear('#vis')
-    pieChart(selected_val)
+    odds(selected_val)
     d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
-    goldlineGraph()
-    killlineGraph()
+    goldlineGraph(selected_val)
+    killlineGraph(selected_val)
   });
 
-// load data
 d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
 
 </script>
