@@ -44,19 +44,78 @@
       transition: 0.3s;
     }
     
+    .slidecontainer {
+      width: 40%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 10px;
+      background: #d3d3d3;
+      outline: none;
+      opacity: 0.5;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+    }
+
+    .slider:hover {
+      opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 32px;
+      height: 32px;
+      background: url('http://www.rw-designer.com/icon-image/21516-32x32x32.png');
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 32px;
+      height: 32px;
+      background: url('http://www.rw-designer.com/icon-image/21516-32x32x32.png');
+    }
+
+ 
   </style>
 </head>
 
-<body> 
+<!-- <body> 
 <p>
   <label>time</label>
   <input type="number" min="1" max="29" step="1" value="1" id="time">
-</p>
+</p> -->
+
+
+
 
 <div class="header">
   <h1>LoL Game Predictor</h1>
 </div>
 
+
+<div class=" subheader">
+  <h1>Game Time (min): <span id="showtime"></span></h1>
+</div>
+
+<div class="slidecontainer">
+  <input type="range" min="1" max="29" value="1" class="slider" id="time">
+  <!-- <p>Game Time (min): <span id="showtime"></span></p> -->
+</div>
+
+<script>
+  var slider = document.getElementById("time");
+  var output = document.getElementById("showtime");
+  output.innerHTML = slider.value;
+  
+  slider.oninput = function() {
+    output.innerHTML = this.value;
+  }
+</script>
 
 <div class="subheader">
   <h1>Odds of Winning team</h1>
