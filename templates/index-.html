@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8">
@@ -656,7 +658,12 @@ function clear(selector){
       .selectAll('svg')
       .remove()
 }
-d3.select("#time").on("input", function() {
+var slider = document.getElementById("time");
+  var output = document.getElementById("showtime");
+  output.innerHTML = slider.value;
+  
+  slider.oninput = function() {
+    output.innerHTML = this.value;
     console.log(this.value)
     selected_val = this.value
     //myBubbleChart = null;
@@ -666,7 +673,7 @@ d3.select("#time").on("input", function() {
     d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
     goldlineGraph(selected_val)
     killlineGraph(selected_val)
-  });
+    }
 
 d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
 
