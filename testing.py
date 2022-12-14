@@ -217,6 +217,79 @@ def reformat(data_list):
     new = new.iloc[: , 1:]
     return new
 
+def reformat_bubble(data_list):
+    head = ['val', 'id' ,'groupid' ,'size']
+    #We might need to concatenate this for multiple values/time stamps into one csv.
+    with open('sample-output-modded.csv', 'w') as f:
+      # using csv.writer method from CSV package
+        write = csv.writer(f)
+        write.writerow(head)
+        print('GUYS:',len(data_list[0][0]))
+        for val in range(len(data_list[0][1])):
+            print('HERE: ',data_list[0][1])
+            if data_list[0][1][val]!=0:
+              if data_list[0][1][val] < 0:
+                dragon_num = - data_list[0][1][val]
+                dragon_group_id = 1
+              if data_list[0][1][val] > 0:
+                dragon_num = data_list[0][1][val]
+                dragon_group_id = 2
+              id = 1
+              size = 2000
+              for i in range(dragon_num):
+                write.writerow([val, id, dragon_group_id, size])
+            
+            if data_list[0][2][val]!=0:
+              if data_list[0][2][val] < 0:
+                baron_num = - data_list[0][2][val]
+                baron_group_id = 1
+              if data_list[0][2][val] > 0:
+                baron_num = data_list[0][2][val]
+                baron_group_id = 2
+              id = 2
+              size = 2000
+              for i in range(baron_num):
+                write.writerow([val, id, baron_group_id, size])
+            
+            if data_list[0][3][val]!=0:
+              if data_list[0][3][val] < 0:
+                herald_num = - data_list[0][3][val]
+                herald_group_id = 1
+              if data_list[0][3][val] > 0:
+                herald_num = data_list[0][3][val]
+                herald_group_id = 2
+              id = 3
+              size = 2000
+              for i in range(herald_num):
+                write.writerow([val, id, herald_group_id, size])
+          
+            if data_list[0][4][val]!=0:
+              if data_list[0][4][val] < 0:
+                tower_num = - data_list[0][4][val]
+                tower_group_id = 1
+              if data_list[0][4][val] > 0:
+                tower_num = data_list[0][4][val]
+                tower_group_id = 2
+              id = 4
+              size = 2000
+              for i in range(tower_num):
+                write.writerow([val, id, tower_group_id, size])
+            
+            if data_list[0][5][val]!=0:
+              if data_list[0][5][val] < 0:
+                inhibitor_num = - data_list[0][5][val]
+                inhibitor_group_id = 1
+              if data_list[0][5][val] > 0:
+                inhibitor_num = data_list[0][5][val]
+                inhibitor_group_id = 2
+              id = 5
+              size = 2000
+              for i in range(inhibitor_num):
+                write.writerow([val, id, inhibitor_group_id, size])
+    new = pd.read_csv('sample-output-modded.csv')
+    #new = new.iloc[: , 1:]
+    return new
+
 # global variables
 bucket = "dataproc-staging-us-central1-419343931639-hthrtj25"
 
@@ -226,15 +299,23 @@ client = storage.Client(project="chrome-insight-363115")
 
 bucket = client.get_bucket(bucket)
 
-blob = bucket.get_blob("sample-output.csv")
+blob1 = bucket.get_blob("sample-output.csv")
+blob2 = bucket.get_blob("sample-output-modded.csv")
 
-bt = blob.download_as_string()
+bt1 = blob1.download_as_string()
+bt2 = blob2.download_as_string()
 
-s = str(bt, "utf-8")
-s = StringIO(s)
+s1 = str(bt1, "utf-8")
+s1 = StringIO(s1)
 
-df = pd.read_csv(s)
+s2 = str(bt2, "utf-8")
+s2 = StringIO(s2)
+
+df = pd.read_csv(s1)
 data = df.values.tolist() #list of outputs
+
+df2 = pd.read_csv(s2)
+data2 = df2.values.tolist() #list of outputs
 #print(data)
 
 app = Flask(__name__)
@@ -248,8 +329,29 @@ def index():
 
 @app.route('/index_matchid/')
 def matchid():
+    blob1 = bucket.get_blob("sample-output.csv")
+    blob2 = bucket.get_blob("sample-output-modded.csv")
+
+    bt1 = blob1.download_as_string()
+    bt2 = blob2.download_as_string()
+
+    s1 = str(bt1, "utf-8")
+    s1 = StringIO(s1)
+
+    s2 = str(bt2, "utf-8")
+    s2 = StringIO(s2)
+
+    df = pd.read_csv(s1)
+    data = df.values.tolist() #list of outputs
+
+    df2 = pd.read_csv(s2).iloc[: , 1:]
+    data2 = df2.values.tolist() #list of outputs
+    
     name = data
-    return render_template('index_matchid.html',name=name)
+    bubble = data2
+    
+    lst = [name, bubble]
+    return render_template('index_matchid.html',lst=lst)
 
 @app.route('/postmethod', methods = ['POST'])
 def get_post_javascript_data():
@@ -257,9 +359,13 @@ def get_post_javascript_data():
     print(match_id)
     wholedf=get_1matchid(match_id)
     print(wholedf.values.tolist())
-    wholedf = reformat(wholedf.values.tolist())
-    print(wholedf)
-    bucket.blob('sample-output.csv').upload_from_string(wholedf.to_csv(), 'text/csv')
+    wholedf1 = reformat(wholedf.values.tolist())
+    bubbledf = reformat_bubble(wholedf.values.tolist())
+    print(wholedf1)
+    print('Bubble')
+    print(bubbledf)
+    bucket.blob('sample-output.csv').upload_from_string(wholedf1.to_csv(), 'text/csv')
+    bucket.blob('sample-output-modded.csv').upload_from_string(bubbledf.to_csv(), 'text/csv')
     return match_id
 
 app.run(debug=True)
