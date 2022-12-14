@@ -124,8 +124,27 @@
   <div id="download" class="progress__bar"></div>
 </div>
 <script>
-var data = {{ name|tojson }}
+var both_data = {{ lst|tojson }}
+for (let i = 0; i < both_data.length; i++) {
+  if(i==0){var data = both_data[i]}
+  else{var bubble_raw = both_data[i]}
+}
+
 console.log(data)
+
+var headers = ['val','id','groupid','size'];
+var bubble = [];
+var bubble_raw_dict = {};
+for (let i = 0; i < bubble_raw.length; i++) {
+  for (let j = 0; j < bubble_raw[i].length; j++) {
+  bubble_raw_dict[headers[j]] = bubble_raw[i][j].toString();
+  }
+  bubble.push(bubble_raw_dict)
+  bubble_raw_dict = {};
+}
+bubble.columns = headers
+console.log('BUBBLE:',bubble)
+
 
 function goldlineGraph(selected_val)
 {
@@ -646,6 +665,7 @@ let myBubbleChart = bubbleChart(selected_val);
 // function called once promise is resolved and data is loaded from csv
 // calls bubble chart function to display inside #vis div
 function display(data) {
+  console.log('BOOOOO:',data)
   myBubbleChart('#vis', data);
 }
 function clear(selector){
@@ -665,12 +685,13 @@ var slider = document.getElementById("time");
     myBubbleChart = bubbleChart(selected_val);
     clear('#vis')
     odds(selected_val)
-    d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+    // d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+    display(bubble)
     goldlineGraph(selected_val)
     killlineGraph(selected_val)
     }
 
-d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
-
+// d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+display(bubble)
 </script>
 </body>
