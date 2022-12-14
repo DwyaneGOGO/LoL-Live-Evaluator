@@ -1,23 +1,88 @@
 
 <!DOCTYPE html>
 <html>
+<meta charset="utf-8">
+<style>
+  body { 
+    font-family: "avenir next", Arial, sans-serif;
+    font-size: 12px;
+    margin: 0;
+    background-image: url("https://w.wallha.com/ws/13/jyoSLNmF.jpg");
+    background-repeat: no-repeat;
+    background-size: cover; 
+    color: black;   
+  }
+  .header {
+    margin: 0px;
+    text-align: center;
+    font-size: 25px;
+  }
+  .split {
+  height: 100%;
+  width: 50%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+/* Control the left side */
+.left {
+  left: 0;
+  background-color: #324ab2;
+}
+
+/* Control the right side */
+.right {
+  right: 0;
+  background-color: red;
+}
+
+/* If you want the content centered horizontally and vertically */
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* Style the image inside the centered container, if needed */
+.centered img {
+  width: 150px;
+  border-radius: 50%;
+}
+</style>
 <body>
 <script src="http://code.jquery.com/jquery.min.js"></script>
-<div class="header">
-  <h1>LoL Game Predictor</h1>
+<div class="split left">
+  <div class="centered">
+    <img src="https://www.shutterstock.com/image-vector/merger-acquisition-due-diligence-concept-260nw-1669864237.jpg" alt="Avatar woman">
+    <h2>Recorded Matches</h2>
+    <input type="text" id="id" name="id"><br>
+    <button id="idButton">Submit</button><br>
+  </div>
 </div>
-<label for="fname">Match-ID:</label>
-<input type="text" id="id" name="id"><br>
-<button onclick="myFunction()">Click me</button><br>
-<a HREF="/index_matchid">Link</a><br>
+
+<div class="split right">
+  <div class="centered">
+    <img src="https://static.vecteezy.com/system/resources/previews/005/260/719/original/live-stream-live-icon-live-streaming-icon-symbol-free-vector.jpg" alt="Avatar man">
+    <h2>Live Evaluation</h2>
+    <button id="LiveButton">Next</button><br>
+  </div>
+</div>
+
 <script>
-function myFunction() {
-  data = document.getElementById("id").value
-  console.log(data)
-  $.post( "/postmethod", {
-      javascript_data: data 
-  });
-}
+document.getElementById("idButton").onclick = function () {
+        location.href = "/index_matchid";
+        data = document.getElementById("id").value
+        console.log(data)
+        $.post( "/postmethod", {
+            javascript_data: data 
+        });
+    };
+
 </script>
 </body>
 </html>
