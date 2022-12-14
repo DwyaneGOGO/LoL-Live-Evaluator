@@ -35,6 +35,15 @@ from riotwatcher._apis.league_of_legends import MatchApiV5
 from riotwatcher import LolWatcher, ApiError
 import numpy as np
 import csv
+from sklearn.preprocessing import StandardScaler
+import math
+import torch
+from torch import nn
+from torch.utils.data import Dataset, DataLoader, random_split
+from torch.autograd import Variable
+from tqdm import tqdm
+import warnings
+warnings.filterwarnings('ignore')
 
 def subtract_list(list1,list2):
     array1 = np.array(list1)
@@ -190,12 +199,45 @@ def get_1matchid(matchid):
         
     return outputdf
 
-def reformat(data_list):
+def get_predictions(data_list):
+    MAX_TIME_STEP = 30
+    labels = []
     red = []
     blue = []
-    for i in range(len(data_list[0][0])):
-        red.append(50)
-        blue.append(50)
+    scalers = {}
+    for i in range(len(data_list[0])-1):
+        scalers[i] = StandardScaler()
+        for row in data_list[0][i]:
+            scalers[i].partial_fit(np.asanyarray(row).reshape(-1, 1))
+    
+    for i in range(len(data_list[0])-1):
+        data_list[0][i] = scalers[i].transform(np.asanyarray(data_list[0][i]).reshape(-1, 1)).reshape(-1)
+    
+    for i in range(MAX_TIME_STEP):
+      max = i+1
+      x = np.asarray([[ [data_list[0][i][timestep] for i in range(len(data_list[0])-1)] for timestep in range(max) ]], dtype=np.float32)
+    
+      model.eval()
+      with torch.no_grad():
+          x = torch.from_numpy(x)
+          predict = model(x)
+          winner = ['red', 'blue'][predict.argmax(1)]
+          prob_red = math.exp(predict[0][0].item()) / (math.exp(predict[0][0].item()) + math.exp(predict[0][1].item()))
+          prob_blue = math.exp(predict[0][1].item()) / (math.exp(predict[0][0].item()) + math.exp(predict[0][1].item()))
+          labels.append(max)
+          red.append(prob_red*100)
+          blue.append(prob_blue*100)
+          #print(f"model predicted winner: { winner }")
+          #print(f"red wins: {prob_red * 100 :.1f}% | blue wins: {prob_blue * 100:.1f}%")
+    print('red:',red)
+    print('blue:',blue)
+    return red, blue
+
+def reformat(data_list):
+    red, blue = get_predictions(data_list)
+    #for i in range(len(data_list[0][0])):
+    #    red.append(50)
+    #    blue.append(50)
     rows = [red, blue]
     head = []
     for i in range(len(red)):
@@ -290,6 +332,28 @@ def reformat_bubble(data_list):
     #new = new.iloc[: , 1:]
     return new
 
+class RNN(nn.Module):
+    def __init__(self):
+        super(RNN,self).__init__()
+        self.hidden_size = 256
+        
+        self.rnn= nn.RNN(
+            nonlinearity = 'relu',
+            input_size = 7,
+            hidden_size = self.hidden_size,
+            num_layers = 1,
+            batch_first = True
+        )
+
+        self.out = nn.Linear(self.hidden_size, 2)
+    
+    def forward(self,x):
+        r_out, hn = self.rnn(x, torch.zeros(1, len(x), self.hidden_size))
+        out = self.out(r_out[:, -1, :])
+        return out
+
+model = RNN()
+model.load_state_dict(torch.load(r"C:\Users\ayman\Dropbox\My PC (LAPTOP-19GOKHVG)\Downloads\model_all_feat.pt"))
 # global variables
 bucket = "dataproc-staging-us-central1-419343931639-hthrtj25"
 
