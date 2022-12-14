@@ -1,0 +1,676 @@
+
+
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src='https://d3js.org/d3.v5.min.js'></script>
+  <style>
+    body { 
+      font-family: "avenir next", Arial, sans-serif;
+      font-size: 12px;
+      margin: 0;
+      background-image: url("https://w.wallha.com/ws/13/jyoSLNmF.jpg");
+      background-repeat: no-repeat;
+      background-size: cover; 
+      color: black;   
+    }
+    .subheader {
+      margin: 0px;
+      text-align: center;
+      font-size: 10px;
+    }
+    
+    .header {
+      margin: 0px;
+      text-align: center;
+      font-size: 25px;
+    }
+    
+    .progress {
+      margin: 50px auto;
+      padding: 0px;
+      width: 100%;
+      max-width: 500px;
+      background: blue;
+      border: 1px solid #000;
+      border-radius: 5px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress .progress__bar {
+      height: 100%;
+      width: 0;
+      border-radius: 4px;
+      background: red;
+      transition: 0.3s;
+    }
+    
+    .slidecontainer {
+      width: 40%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 10px;
+      background: #d3d3d3;
+      outline: none;
+      opacity: 0.5;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+    }
+
+    .slider:hover {
+      opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 32px;
+      height: 32px;
+      background: url('http://www.rw-designer.com/icon-image/21516-32x32x32.png');
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 32px;
+      height: 32px;
+      background: url('http://www.rw-designer.com/icon-image/21516-32x32x32.png');
+    }
+
+ 
+  </style>
+</head>
+
+<!-- <body> 
+<p>
+  <label>time</label>
+  <input type="number" min="1" max="29" step="1" value="1" id="time">
+</p> -->
+
+<div class="header">
+  <h1>LoL Game Predictor</h1>
+</div>
+<div class=" subheader">
+  <h1>Game Time (min): <span id="showtime"></span></h1>
+</div>
+
+<div class="slidecontainer">
+  <input type="range" min="1" max="29" value="1" class="slider" id="time">
+  <!-- <p>Game Time (min): <span id="showtime"></span></p> -->
+</div>
+
+<script>
+  var slider = document.getElementById("time");
+  var output = document.getElementById("showtime");
+  output.innerHTML = slider.value;
+  
+  slider.oninput = function() {
+    output.innerHTML = this.value;
+  }
+</script>
+
+<div class="subheader">
+  <h1>Odds of Winning team</h1>
+</div>
+
+<div id = 'vis'></div>
+
+<div class="progress"> 
+  <div id="download" class="progress__bar"></div>
+</div>
+<script>
+var data = {{ name|tojson }}
+console.log(data)
+
+function goldlineGraph(selected_val)
+{
+    var margin = {top: 20, right: 50, bottom: 50, left: 60},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+    width = width - 50
+    height = height - 50
+    // append the svg object to the body of the page
+    var svg2 = d3.select("#vis")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .style("position","fixed")
+        .style("top","40%")
+        .style("left","3%")
+        .style('background', 'white')
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+              
+    console.log('Here')
+    var golddiff = data[3].slice(0, selected_val);
+    console.log('Gold here: ', golddiff, selected_val)
+    
+    min = Math.min(...golddiff)
+    max = Math.max(...golddiff)
+    console.log(min)
+    console.log(max)
+     
+    var arr = [];
+    var temp_arr = [];
+    var count = 1;
+    for (let x in golddiff) {
+        temp_arr.push(count);
+        temp_arr.push(golddiff[x]);
+        arr.push(temp_arr);
+        temp_arr = [];
+        count += 1;
+    }
+    console.log('Finally')
+    console.log(arr)
+    
+    var xScale = d3.scaleLinear().domain([0, golddiff.length]).range([0, width]),
+            yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
+    
+    svg2.append("g")
+         .attr("transform", "translate(0," + height + ")")
+         .call(d3.axisBottom(xScale));
+        
+    svg2.append("g")
+         .call(d3.axisLeft(yScale));
+
+    svg2.append("path")
+        .datum(arr) 
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+                    .x(function(d) { return xScale(d[0]); }) 
+                    .y(function(d) { return yScale(d[1]); })
+                    );
+
+    svg2.append("text")
+	  .attr("x", width / 2)
+	  .attr("y", height + 50)
+	  .attr("text-anchor", "middle")
+	  .style("font-size", "18px")
+	  .style("max-width", 400)
+	  .text("Time(mins)");
+   
+   svg2.append("g")
+      .attr('transform', 'translate(' + -45 + ', ' + height / 2 + ')')
+      .append("text")
+	  .attr("text-anchor", "middle")
+	  .style("font-size", "18px")
+	  .style("max-width", 400)
+      .attr("transform", "rotate(-90)")
+	  .text("Gold Difference");
+}
+
+function killlineGraph(selected_val)
+{
+    var margin = {top: 20, right: 50, bottom: 50, left: 60},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+    width = width - 50
+    height = height - 50
+    // append the svg object to the body of the page
+    var svg3 = d3.select("#vis")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .style("position","fixed")
+        .style("top","40%")
+        .style("left","75%")
+        .style('background', 'white')
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+              
+    console.log('Here')
+    var killdiff = data[8].slice(0, selected_val);
+    console.log(killdiff)
+    
+    min = Math.min(...killdiff)
+    max = Math.max(...killdiff)
+    console.log(min)
+    console.log(max)
+     
+    var arr = [];
+    var temp_arr = [];
+    var count = 1;
+    for (let x in killdiff) {
+        temp_arr.push(count);
+        temp_arr.push(killdiff[x]);
+        arr.push(temp_arr);
+        temp_arr = [];
+        count += 1;
+    }
+    console.log('Finally')
+    console.log(arr)
+    
+    var xScale = d3.scaleLinear().domain([0, killdiff.length]).range([0, width]),
+            yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
+    
+    svg3.append("g")
+         .attr("transform", "translate(0," + height + ")")
+         .call(d3.axisBottom(xScale));
+        
+    svg3.append("g")
+         .call(d3.axisLeft(yScale));
+
+    svg3.append("path")
+        .datum(arr) 
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+                    .x(function(d) { return xScale(d[0]); }) 
+                    .y(function(d) { return yScale(d[1]); })
+                    );
+
+    svg3.append("text")
+	  .attr("x", width / 2)
+	  .attr("y", height + 50)
+	  .attr("text-anchor", "middle")
+	  .style("font-size", "18px")
+	  .style("max-width", 400)
+	  .text("Time(mins)");
+   
+   svg3.append("g")
+      .attr('transform', 'translate(' + -45 + ', ' + height / 2 + ')')
+      .append("text")
+	  .attr("text-anchor", "middle")
+	  .style("font-size", "18px")
+	  .style("max-width", 400)
+      .attr("transform", "rotate(-90)")
+	  .text("Kill Difference");
+}
+
+function odds(selected_val)
+{
+    // Edited here- load data
+    let progressbar = document.getElementById("download");
+
+    function updateProgressBar(value) {
+      if (value >= 0 && value <= 100) {
+        progressbar.style.width = value + "%"; 
+      }
+    }
+
+    function handleInput(value) {
+      console.log("hello")
+      //let value = document.getElementById('set-value').value;
+      if (value > 100) {
+        value = 100;
+        document.getElementById('set-value').value = 100;
+      }
+      if (value < 0) {
+        value = 0;
+        document.getElementById('set-value').value = 0;
+      }
+      
+      updateProgressBar(value);
+    }
+    console.log(data[0][selected_val])
+    handleInput(Math.round(data[0][selected_val]));
+    //End-edit
+}
+
+// bubbleChart creation function; instantiate new bubble chart given a DOM element to display it in and a dataset to visualise
+function bubbleChart(selected_val) {
+  const width = 940;
+  const height = 500;
+
+  // location to centre the bubbles
+  const centre = { x: width/2, y: height/2 };
+
+  // strength to apply to the position forces
+  const forceStrength = 0.05;
+
+  // these will be set in createNodes and chart functions
+  let svg = null;
+  let bubbles = null;
+  let labels = null;
+  let nodes = [];
+
+  // charge is dependent on size of the bubble, so bigger towards the middle
+  function charge(d) {
+    return Math.pow(d.radius, 2.0) * 0.01
+  }
+
+  // create a force simulation and add forces to it
+  //const simulation = d3.forceSimulation()
+  //  .force('charge', d3.forceManyBody().strength(charge))
+  //  // .force('center', d3.forceCenter(centre.x, centre.y))
+  //  .force('x', d3.forceX().strength(forceStrength).x(centre.x))
+  //  .force('y', d3.forceY().strength(forceStrength).y(centre.y))
+  //  .force('collision', d3.forceCollide().radius(d => d.radius + 1));
+  
+  var forceX = d3.forceX(function(d){
+      if(d.groupid == 1){
+          return width/1.4
+      }
+      if(d.groupid == 2){
+          return width/3
+      }
+  }).strength(forceStrength)
+  
+  var forceY = d3.forceY(function(d){
+      if(d.groupid == 1){
+          return height/5
+      }
+      if(d.groupid == 2){
+          return height/1.25
+      }
+  }).strength(forceStrength)
+  
+  const simulation = d3.forceSimulation()
+    .force('charge', d3.forceManyBody().strength(charge))
+    // .force('center', d3.forceCenter(centre.x, centre.y))
+    .force('x', forceX)
+    .force('y', forceY)
+    .force('collision', d3.forceCollide().radius(d => d.radius + 1));
+
+  // force simulation starts up automatically, which we don't want as there aren't any nodes yet
+  simulation.stop();
+
+  // set up colour scale
+  const fillColour = d3.scaleOrdinal()
+  	.domain(["1", "2", "3", "5", "99"])
+  	.range(["#FF0000","#0000FF"]);
+
+  // data manipulation function takes raw data from csv and converts it into an array of node objects
+  // each node will store data and visualisation values to draw a bubble
+  // rawData is expected to be an array of data objects, read in d3.csv
+  // function returns the new node array, with a node for each element in the rawData input
+  function createNodes(rawData) {
+    // use max size in the data as the max in the scale's domain
+    // note we have to ensure that size is a number
+    const maxSize = d3.max(rawData, d => +d.size);
+
+    // size bubbles based on area
+    const radiusScale = d3.scaleSqrt()
+      .domain([0, maxSize])
+      .range([0, 20]) //change for size
+
+    // use map() to convert raw data into node data
+    const myNodes = rawData.map(d => ({
+      ...d,
+      radius: radiusScale(+d.size),
+      size: +d.size,
+      x: Math.random() * 900,
+      y: Math.random() * 800
+    }))
+
+    return myNodes;
+  }
+
+  // main entry point to bubble chart, returned by parent closure
+  // prepares rawData for visualisation and adds an svg element to the provided selector and starts the visualisation process
+  let chart = function chart(selector, rawData) {
+    // convert raw data into nodes data
+    console.log(rawData[0]['val'])
+    //console.log(rawData)
+    newData = [];
+    console.log(selected_val)
+    //var selected_val = 29;
+    for (const property in rawData) {
+          console.log(`${property}: ${rawData[property]}`);
+          for (const raw_property in rawData[property]) {
+              if(raw_property=='val'){
+                  if(rawData[property][raw_property] == selected_val){
+                  newData.push({id:rawData[property]['id'], groupid:rawData[property]['groupid'], size:rawData[property]['size']})
+              }
+              }
+              }
+          }
+    console.log(newData);
+    
+    nodes = createNodes(newData);
+
+    // create svg element inside provided selector
+    
+    //position: fixed;
+    //top: 50%;
+    //left: 50%;
+    //transform: translate(-50%, -50%);
+
+
+    svg = d3.select(selector)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style("position","fixed")
+      .style("top","40%")
+      .style("left","25%")
+      .style('background', 'url("https://lolfanatics.com/wp-content/uploads/2022/04/League-of-Legends-Locations-Map-Guide.jpg") no-repeat')
+      .style('background-size', 'width height');
+      //.style('background-position', '20px top');
+    //edits
+   // bgrnd = d3.select(selector)
+   //           .attr("background",d => url("https://lolfanatics.com/wp-content/uploads/2022/04/League-of-Legends-Locations-Map-Guide.jpg") )
+    //1->Red, 2->Blue Map->map
+    var defs = svg.append("defs");
+    
+    defs.append("pattern")
+      .attr("id", "map")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",height)
+      .attr("width",width)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://lolfanatics.com/wp-content/uploads/2022/04/League-of-Legends-Locations-Map-Guide.jpg")
+    
+    defs.append("pattern")
+      .attr("id", "1-1")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://images.saymedia-content.com/.image/t_share/MTc0NDUyOTIzMTEwMDA4MTY4/league-of-legends-dragon-drake-control.png")
+    
+    defs.append("pattern")
+      .attr("id", "1-2")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://www.gamersdecide.com/sites/default/files/authors/u157431/cloud.jpg")
+    
+    defs.append("pattern")
+      .attr("id", "2-1")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://i.ytimg.com/vi/5qYyhE5SmEc/maxresdefault.jpg")
+    
+    defs.append("pattern")
+      .attr("id", "2-2")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://www.lolporadnik.pl/wp-content/uploads/2020/11/baron-300x293.jpg")
+      
+    defs.append("pattern")
+      .attr("id", "3-1")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://external-preview.redd.it/sO1hOP1ZxscEnIemG5ZQxGp8ZNW-riPi-VextK42YqU.jpg?auto=webp&s=d39aa960e10e4185752423746bd5b4a31c330a79")
+    
+    defs.append("pattern")
+      .attr("id", "3-2")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://images2.minutemediacdn.com/image/fetch/w_736,h_485,c_fill,g_auto,f_auto/https%3A%2F%2Fblogoflegends.com%2Ffiles%2F2016%2F04%2Frh-850x493.jpg")
+      
+    defs.append("pattern")
+      .attr("id", "4-1")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://images2.minutemediacdn.com/image/upload/c_fill,w_1200,h_630,f_auto,q_auto,g_auto/shape/cover/sport/5ae8b25f63c941ab9c000003.jpeg")//Old version. Update it
+    
+    defs.append("pattern")
+      .attr("id", "4-2")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://noobabble.files.wordpress.com/2014/06/blue-tower.jpg")
+      
+    defs.append("pattern")
+      .attr("id", "5-1")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://www.lolfinity.com/wp-content/uploads/2018/04/Red_Inhibitor.png")
+    
+    defs.append("pattern")
+      .attr("id", "5-2")
+      .attr("height", "100%")
+      .attr("width", "100%")
+      .attr("patternContentUnits", "objectBoundingBox")
+      .append("image")
+      .attr("height",1)
+      .attr("width",1)
+      .attr("preserveAspectRatio","none")
+      .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
+      .attr("xlink:href","https://images2.minutemediacdn.com/image/fetch/w_2000,h_2000,c_fit/https%3A%2F%2Fblogoflegends.com%2Ffiles%2F2016%2F11%2Fnpg-inhibitor.jpg")//Old version. Update it
+    
+    
+    //end-edits
+
+    // bind nodes data to circle elements
+    const elements = svg.selectAll('.bubble')
+      .data(nodes, d => d.id)
+      .enter()
+      .append('g');
+
+    //bubbles = elements
+    //  .append('circle')
+    //  .classed('bubble', true)
+    //  .attr('r', d => d.radius)
+    //  .attr('fill', d => fillColour(d.groupid))
+    
+    bubbles = elements
+      .append('circle')
+      .classed('bubble', true)
+      .attr('r', d => d.radius)
+      .attr('fill', d => "url(#" + d.id + "-"+ d.groupid + ")")
+    
+    // labels
+    labels = elements
+      .append('text')
+      .attr('dy', '.3em')
+      .style('text-anchor', 'middle')
+      .style('font-size', 2)
+      .style('color', function(d) {if(d.groupid == 1) {return "blue";} else {return "red";}})
+      .text(d => d.groupid)
+
+    // set simulation's nodes to our newly created nodes array
+    // simulation starts running automatically once nodes are set
+    simulation.nodes(nodes)
+      .on('tick', ticked)
+      .restart();
+  }
+
+  // callback function called after every tick of the force simulation
+  // here we do the actual repositioning of the circles based on current x and y value of their bound node data
+  // x and y values are modified by the force simulation
+  function ticked() {
+    bubbles
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+
+    labels
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
+  }
+
+  // return chart function from closure
+  return chart;
+}
+
+// new bubble chart instance
+var selected_val = 1;
+let myBubbleChart = bubbleChart(selected_val);
+
+// function called once promise is resolved and data is loaded from csv
+// calls bubble chart function to display inside #vis div
+function display(data) {
+  myBubbleChart('#vis', data);
+}
+function clear(selector){
+    d3.select(selector)
+      .selectAll('svg')
+      .remove()
+}
+var slider = document.getElementById("time");
+  var output = document.getElementById("showtime");
+  output.innerHTML = slider.value;
+  
+  slider.oninput = function() {
+    output.innerHTML = this.value;
+    console.log(this.value)
+    selected_val = this.value
+    //myBubbleChart = null;
+    myBubbleChart = bubbleChart(selected_val);
+    clear('#vis')
+    odds(selected_val)
+    d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+    goldlineGraph(selected_val)
+    killlineGraph(selected_val)
+    }
+
+d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+
+</script>
+</body>
