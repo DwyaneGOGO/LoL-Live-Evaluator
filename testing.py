@@ -200,7 +200,7 @@ def get_1matchid(matchid):
     return outputdf
 
 def get_predictions(data_list):
-    MAX_TIME_STEP = 30
+    MAX_TIME_STEP = len(data_list[0][0])
     labels = []
     red = []
     blue = []
@@ -417,6 +417,32 @@ def matchid():
     lst = [name, bubble]
     return render_template('index_matchid.html',lst=lst)
 
+@app.route('/index_live/')
+def matchlive():
+    blob1 = bucket.get_blob("sample-output-live.csv")
+    blob2 = bucket.get_blob("sample-output-modded-live.csv")
+
+    bt1 = blob1.download_as_string()
+    bt2 = blob2.download_as_string()
+
+    s1 = str(bt1, "utf-8")
+    s1 = StringIO(s1)
+
+    s2 = str(bt2, "utf-8")
+    s2 = StringIO(s2)
+
+    df = pd.read_csv(s1)
+    data = df.values.tolist() #list of outputs
+
+    df2 = pd.read_csv(s2).iloc[: , 1:]
+    data2 = df2.values.tolist() #list of outputs
+    
+    name = data
+    bubble = data2
+    
+    lst = [name, bubble]
+    return render_template('index_live.html',lst=lst)
+
 @app.route('/postmethod', methods = ['POST'])
 def get_post_javascript_data():
     match_id = request.form['javascript_data']
@@ -430,6 +456,8 @@ def get_post_javascript_data():
     print(bubbledf)
     bucket.blob('sample-output.csv').upload_from_string(wholedf1.to_csv(), 'text/csv')
     bucket.blob('sample-output-modded.csv').upload_from_string(bubbledf.to_csv(), 'text/csv')
+    model = RNN()
+    model.load_state_dict(torch.load(r"C:\Users\ayman\Dropbox\My PC (LAPTOP-19GOKHVG)\Downloads\model_all_feat.pt"))
     return match_id
 
 app.run(debug=True)
