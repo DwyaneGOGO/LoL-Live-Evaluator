@@ -12,10 +12,17 @@
     background-size: cover; 
     color: black;   
   }
-  .header {
+  .header1 {
     margin: 0px;
     text-align: center;
-    font-size: 25px;
+    font-size: 20px;
+    color: white
+  }
+  .header2 {
+    margin: 0px;
+    text-align: center;
+    font-size: 20px;
+    color: black
   }
   .split {
   height: 100%;
@@ -30,13 +37,21 @@
 /* Control the left side */
 .left {
   left: 0;
-  background-color: #324ab2;
+  // background-color: #324ab2;
+  background-image: url("https://cdna.artstation.com/p/assets/images/images/012/198/494/large/kristian-akerstrom-analytics-dashboard-overview.jpg?1533572173");
+  background-repeat: no-repeat;
+  background-size: cover; 
+  color: black;
 }
 
 /* Control the right side */
 .right {
   right: 0;
-  background-color: red;
+  // background-color: red;
+  background-image: url("https://variety.com/wp-content/uploads/2018/07/league-of-legends-2015-05-15-18-05-46-91.png");
+  background-repeat: no-repeat;
+  background-size: cover; 
+  color: black;
 }
 
 /* If you want the content centered horizontally and vertically */
@@ -59,7 +74,7 @@
 <div class="split left">
   <div class="centered">
     <img src="https://www.shutterstock.com/image-vector/merger-acquisition-due-diligence-concept-260nw-1669864237.jpg" alt="Avatar woman">
-    <h2>Recorded Matches</h2>
+    <h2 class="header1">Recorded Matches</h2>
     <input type="text" id="id" name="id"><br>
     <button id="idButton">Submit</button><br>
   </div>
@@ -68,7 +83,7 @@
 <div class="split right">
   <div class="centered">
     <img src="https://static.vecteezy.com/system/resources/previews/005/260/719/original/live-stream-live-icon-live-streaming-icon-symbol-free-vector.jpg" alt="Avatar man">
-    <h2>Live Evaluation</h2>
+    <h2 class="header2">Live Evaluation</h2>
     <button id="LiveButton">Next</button><br>
   </div>
 </div>
