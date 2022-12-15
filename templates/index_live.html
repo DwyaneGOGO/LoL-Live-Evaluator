@@ -4,12 +4,13 @@
 <head>
   <meta charset="utf-8">
   <script src='https://d3js.org/d3.v5.min.js'></script>
+  <script src="http://code.jquery.com/jquery.min.js"></script>
   <style>
     body { 
       font-family: "avenir next", Arial, sans-serif;
       font-size: 12px;
       margin: 0;
-      background-image: url("https://w.wallha.com/ws/13/jyoSLNmF.jpg");
+      background-image: url("https://cdn.wallpapersafari.com/9/85/xPlY82.jpg");
       background-repeat: no-repeat;
       background-size: cover; 
       color: black;   
@@ -84,7 +85,7 @@
 
     .centered {
       position: absolute;
-      top: 17%;
+      top: 13%;
       left: 57%;
       transform: translate(-50%, -50%);
       text-align: center;
@@ -100,17 +101,13 @@
 </p> -->
 
 <div class="header">
-  <h1>LoL Game Predictor</h1>
+  <h1>LoL Live Evaluator</h1>
 </div>
 <div class=" subheader">
   <h1>Game Time (min): <span id="showtime"></span></h1>
 </div>
-
-<div class=" subheader">
-  <h1>Next Frame (4 mins): </h1>
-</div>
 <div class="centered">
-<button id="Button">Next</button><br>
+<button id="Button">Live</button><br>
 </div>
 <div class="slidecontainer">
   <input type="range" min="1" max="29" value="1" class="slider" id="time">
@@ -127,11 +124,12 @@
   <div id="download" class="progress__bar"></div>
 </div>
 <script>
-
 var both_data = {{ lst|tojson }}
+console.log('HEEEERE: ',both_data)
 for (let i = 0; i < both_data.length; i++) {
   if(i==0){var data = both_data[i]}
-  else{var bubble_raw = both_data[i]}
+  if(i==1){var bubble_raw = both_data[i]}
+  else{var preds = both_data[i]}
 }
 
 console.log(data)
@@ -244,14 +242,14 @@ function killlineGraph(selected_val)
         .attr("height", height + margin.top + margin.bottom)
         .style("position","fixed")
         .style("top","45%")
-        .style("left","68%")
+        .style("left","55%")
         .style('background', 'white')
       .append("g")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
               
     console.log('Here')
-    var killdiff = data[8].slice(0, selected_val);
+    var killdiff = data[6].slice(0, selected_val);
     console.log(killdiff)
     
     min = Math.min(...killdiff)
@@ -335,8 +333,8 @@ function odds(selected_val)
       
       updateProgressBar(value);
     }
-    console.log(data[0][selected_val])
-    handleInput(Math.round(data[0][selected_val]));
+    console.log("PREDICTION: ",preds[0][selected_val])
+    handleInput(Math.round(preds[0][selected_val]));
     //End-edit
 }
 
@@ -466,7 +464,7 @@ function bubbleChart(selected_val) {
       .attr('height', height)
       .style("position","fixed")
       .style("top","40%")
-      .style("left","35%")
+      .style("left","25%")
       .style('background', 'url("https://www.mobafire.com/images/ward-map/map-full-dimmed-opt.jpg") no-repeat')
       .style('background-size', '60% 100%');
       //.style('background-position', '20px top');
@@ -680,48 +678,41 @@ function clear(selector){
 var slider = document.getElementById("time");
   var output = document.getElementById("showtime");
   output.innerHTML = slider.value;
+  
+  slider.oninput = function() {
+    output.innerHTML = this.value;
+    console.log(this.value)
+    selected_val = this.value
+    // myBubbleChart = null;
+    myBubbleChart = bubbleChart(selected_val);
+    // clear('#vis')
+    odds(selected_val,preds)
+    // d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+    killlineGraph(selected_val)
+    display(bubble)
+    //goldlineGraph(selected_val)
+    }
 
-var ref_value = 1;
+// d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+display(bubble)
+killlineGraph(0)
 
 function run(i){
     slider.value = i;
     output.innerHTML = slider.value;
     console.log(slider.value)
     selected_val = slider.value
-    //myBubbleChart = null;
-    myBubbleChart = bubbleChart(selected_val);
-    clear('#vis')
-    odds(selected_val)
+    // myBubbleChart = null;
+    if (selected_val>1){myBubbleChart = bubbleChart(selected_val-1);}
+    else{myBubbleChart = bubbleChart(selected_val);}
+    // clear('#vis')
+    if (selected_val>1){odds(selected_val-1,preds)}
+    else{odds(selected_val,preds);}
     // d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
     display(bubble)
-    goldlineGraph(selected_val)
     killlineGraph(selected_val)
     }
-
-  slider.oninput = function() {
-    output.innerHTML = this.value;
-    console.log(this.value)
-    selected_val = this.value
-    s = parseInt(selected_val)+1;
-    e = s + 4;
-    console.log('Refs:',s,e)
-    //myBubbleChart = null;
-    myBubbleChart = bubbleChart(selected_val);
-    clear('#vis')
-    odds(selected_val)
-    // d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
-    display(bubble)
-    goldlineGraph(selected_val)
-    killlineGraph(selected_val)
-    }
-// d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
-display(bubble)
-
-//for (let i = 1; i < 30; i++) {
-//  setTimeout (function(){run(i), 1000)
-//  // setTimeout(() => {  run(i); }, 5000);
-// }
-
+    
 var sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 const repeatedGreetings = async (s,e) => {
@@ -731,31 +722,37 @@ for (let i = s; i < e; i++) {
     run(i)
  }
 }
+var e = 1;
 var s = 1;
-var e = 5;
-repeatedGreetings(s,e);
-s = e;
-e = e+4;
 document.getElementById("Button").onclick = function () {
-        if(e>30){e = 30;}
-        if(s>29){s = 29;}
-        repeatedGreetings(s,e);
         s = e;
-        e = e+4;
-        if(e>30){e = 30;}
+        fetch('/test')
+          .then(function (response) {
+              return response.json();
+          }).then(function (text) {
+              console.log('GET response:');
+              both_data = text.data; 
+          });
+        for (let i = 0; i < both_data.length; i++) {
+          if(i==0){data = both_data[i]}
+          if(i==1){bubble_raw = both_data[i]}
+          else{preds = both_data[i]}
+        }
+        bubble = [];
+        bubble_raw_dict = {};
+        for (let i = 0; i < bubble_raw.length; i++) {
+          for (let j = 0; j < bubble_raw[i].length; j++) {
+          bubble_raw_dict[headers[j]] = bubble_raw[i][j].toString();
+          }
+          bubble.push(bubble_raw_dict)
+          bubble_raw_dict = {};
+        }
+        bubble.columns = headers
+        console.log('NEW BUBBLE:',bubble)
+        console.log('New:',data)
+        e = data[0].length+1;
+        console.log('E:',e)
+        repeatedGreetings(s,e);
     };
-
-function temp()
-{if(slider.value<30){
-console.log(slider.value)
-slider.value = slider.value+1;}
-}
-// while (selected_val == ref_value) {
-  // await setTimeout(60000)
-//  selected_val +=1
-//  ref_value = selected_val
-//  setTimeout(run(selected_val), 3000000);
-// }
-
 </script>
 </body>
