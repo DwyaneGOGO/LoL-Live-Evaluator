@@ -420,26 +420,19 @@ def matchid():
 @app.route('/index_live/')
 def matchlive():
     blob1 = bucket.get_blob("sample-output-live.csv")
-    blob2 = bucket.get_blob("sample-output-modded-live.csv")
 
     bt1 = blob1.download_as_string()
-    bt2 = blob2.download_as_string()
 
     s1 = str(bt1, "utf-8")
     s1 = StringIO(s1)
 
-    s2 = str(bt2, "utf-8")
-    s2 = StringIO(s2)
-
     df = pd.read_csv(s1)
     data = df.values.tolist() #list of outputs
-
-    df2 = pd.read_csv(s2).iloc[: , 1:]
-    data2 = df2.values.tolist() #list of outputs
+    
+    bubble = reformat_bubble(data)
+    bubble = bubble.values.tolist()
     
     name = data
-    bubble = data2
-    
     lst = [name, bubble]
     return render_template('index_live.html',lst=lst)
 
