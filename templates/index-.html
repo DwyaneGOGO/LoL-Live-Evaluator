@@ -90,14 +90,16 @@
 
 <script>
 document.getElementById("idButton").onclick = function () {
-        location.href = "/index_matchid";
         data = document.getElementById("id").value
         console.log(data)
         $.post( "/postmethod", {
             javascript_data: data 
         });
+        location.href = "/index_matchid";
     };
-
+document.getElementById("LiveButton").onclick = function () {
+        location.href = "/index_live";
+    };
 </script>
 </body>
 </html>
