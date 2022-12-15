@@ -16,10 +16,8 @@ Usage:
 
 
 Todo:
-    1. hashtagCount: calculate accumulated hashtags count
-    2. wordCount: calculate word count every 60 seconds
-        the word you should track is listed below.
-    3. save the result to google BigQuery
+    1. Need to get the deep learning model to 
+       give outputs for predictions for the live_api
 
 """
 
@@ -43,7 +41,10 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from torch.autograd import Variable
 from tqdm import tqdm
 import warnings
+from ast import literal_eval
+import time
 warnings.filterwarnings('ignore')
+from flask import jsonify
 
 def subtract_list(list1,list2):
     array1 = np.array(list1)
@@ -53,7 +54,7 @@ def subtract_list(list1,list2):
     return subtracted
 
 def get_match_json(matchid):
-    api_key='RGAPI-bc2f7582-a02b-44cf-b4ff-5bffbb9fdc92'
+    api_key='RGAPI-bef6259f-dd47-41ae-8929-87ec6b4c36ad'
     region='AMERICAS'
     
     url_pull_match = "https://{}.api.riotgames.com/lol/match/v5/matches/{}/timeline?api_key={}".format(region, matchid, api_key)
@@ -199,8 +200,9 @@ def get_1matchid(matchid):
         
     return outputdf
 
-def get_predictions(data_list):
+def get_predictions(data_list, model):
     MAX_TIME_STEP = len(data_list[0][0])
+    print("MAX_TIME_STEP",MAX_TIME_STEP)
     labels = []
     red = []
     blue = []
@@ -234,7 +236,7 @@ def get_predictions(data_list):
     return red, blue
 
 def reformat(data_list):
-    red, blue = get_predictions(data_list)
+    red, blue = get_predictions(data_list, model)
     #for i in range(len(data_list[0][0])):
     #    red.append(50)
     #    blue.append(50)
@@ -279,6 +281,7 @@ def reformat_bubble(data_list):
               id = 1
               size = 2000
               for i in range(dragon_num):
+                print('Entered here')
                 write.writerow([val, id, dragon_group_id, size])
             
             if data_list[0][2][val]!=0:
@@ -291,6 +294,7 @@ def reformat_bubble(data_list):
               id = 2
               size = 2000
               for i in range(baron_num):
+                print('Entered here')
                 write.writerow([val, id, baron_group_id, size])
             
             if data_list[0][3][val]!=0:
@@ -303,6 +307,7 @@ def reformat_bubble(data_list):
               id = 3
               size = 2000
               for i in range(herald_num):
+                print('Entered here')
                 write.writerow([val, id, herald_group_id, size])
           
             if data_list[0][4][val]!=0:
@@ -315,6 +320,7 @@ def reformat_bubble(data_list):
               id = 4
               size = 2000
               for i in range(tower_num):
+                print('Entered here')
                 write.writerow([val, id, tower_group_id, size])
             
             if data_list[0][5][val]!=0:
@@ -327,6 +333,7 @@ def reformat_bubble(data_list):
               id = 5
               size = 2000
               for i in range(inhibitor_num):
+                print('Entered here')
                 write.writerow([val, id, inhibitor_group_id, size])
     new = pd.read_csv('sample-output-modded.csv')
     #new = new.iloc[: , 1:]
@@ -340,6 +347,26 @@ class RNN(nn.Module):
         self.rnn= nn.RNN(
             nonlinearity = 'relu',
             input_size = 7,
+            hidden_size = self.hidden_size,
+            num_layers = 1,
+            batch_first = True
+        )
+
+        self.out = nn.Linear(self.hidden_size, 2)
+    
+    def forward(self,x):
+        r_out, hn = self.rnn(x, torch.zeros(1, len(x), self.hidden_size))
+        out = self.out(r_out[:, -1, :])
+        return out
+
+class RNN_ng(nn.Module):
+    def __init__(self):
+        super(RNN_ng,self).__init__()
+        self.hidden_size = 256
+        
+        self.rnn= nn.RNN(
+            nonlinearity = 'relu',
+            input_size = 6,
             hidden_size = self.hidden_size,
             num_layers = 1,
             batch_first = True
@@ -419,7 +446,7 @@ def matchid():
 
 @app.route('/index_live/')
 def matchlive():
-    blob1 = bucket.get_blob("sample-output-live.csv")
+    blob1 = bucket.get_blob("leaguedata/text.csv")
 
     bt1 = blob1.download_as_string()
 
@@ -428,13 +455,101 @@ def matchlive():
 
     df = pd.read_csv(s1)
     data = df.values.tolist() #list of outputs
+    data_ref = data
     
+    print(data)
+    mod_data = []
+    for x in data[0]:
+        if len(mod_data)==len(data[0])-1:
+            continue
+        print('X:',x)
+        x = literal_eval(x)
+        mod_data.append(x)
+    data = []
+    data.append(mod_data.copy())
+    print("mod_data: ",mod_data)
     bubble = reformat_bubble(data)
+    print('bubs:',bubble)
+    if bubble.empty:
+        head = ['val', 'id' ,'groupid' ,'size']
+        with open('sample-output-modded.csv', 'w') as f:
+            write = csv.writer(f)
+            write.writerow(head)
+            write.writerow([30, 1, 2, 2000])
+        bubble = pd.read_csv('sample-output-modded.csv')
     bubble = bubble.values.tolist()
+    print('bubby:',bubble)
     
-    name = data
-    lst = [name, bubble]
+    model = RNN_ng()
+    model.load_state_dict(torch.load(r"C:\Users\ayman\Dropbox\My PC (LAPTOP-19GOKHVG)\Downloads\model_no_gold.pt"))
+    print('DATA: ',data)
+    red, blue = get_predictions(data,model)
+    print('Preds:')
+    print(red)
+    print(blue)
+    pred = []
+    pred.append(red)
+    pred.append(blue)
+    
+    name = mod_data
+    lst = [name, bubble, pred]
     return render_template('index_live.html',lst=lst)
+
+@app.route('/test', methods=['GET'])
+def testfn():
+    blob1 = bucket.get_blob("leaguedata/text.csv")
+
+    bt1 = blob1.download_as_string()
+
+    s1 = str(bt1, "utf-8")
+    s1 = StringIO(s1)
+
+    df = pd.read_csv(s1)
+    data = df.values.tolist() #list of outputs
+    data_ref = data
+    
+    print(data)
+    mod_data = []
+    for x in data[0]:
+        if len(mod_data)==len(data[0])-1:
+            continue
+        print('X:',x)
+        x = literal_eval(x)
+        mod_data.append(x)
+    data = []
+    data.append(mod_data.copy())
+    print("mod_data: ",mod_data)
+    bubble = reformat_bubble(data)
+    print('bubs:',bubble)
+    if bubble.empty:
+        head = ['val', 'id' ,'groupid' ,'size']
+        with open('sample-output-modded.csv', 'w') as f:
+            write = csv.writer(f)
+            write.writerow(head)
+            write.writerow([30, 1, 2, 2000])
+        bubble = pd.read_csv('sample-output-modded.csv')
+    bubble = bubble.values.tolist()
+    print('bubby:',bubble)
+    
+    model = RNN_ng()
+    model.load_state_dict(torch.load(r"C:\Users\ayman\Dropbox\My PC (LAPTOP-19GOKHVG)\Downloads\model_no_gold.pt"))
+    print('DATA: ',data)
+    red, blue = get_predictions(data,model)
+    print('Preds:')
+    print(red)
+    print(blue)
+    pred = []
+    pred.append(red)
+    pred.append(blue)
+    
+    name = mod_data
+    lst = [name, bubble, pred]
+    print(type(name))
+    print(type(bubble))
+    # GET request
+    if request.method == 'GET':
+        message = {'data': lst}
+        return jsonify(message)  # serialize and use JSON headers
 
 @app.route('/postmethod', methods = ['POST'])
 def get_post_javascript_data():
@@ -452,5 +567,5 @@ def get_post_javascript_data():
     model = RNN()
     model.load_state_dict(torch.load(r"C:\Users\ayman\Dropbox\My PC (LAPTOP-19GOKHVG)\Downloads\model_all_feat.pt"))
     return match_id
-
+    
 app.run(debug=True)
