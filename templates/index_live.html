@@ -32,7 +32,7 @@
       padding: 0px;
       width: 100%;
       max-width: 500px;
-      background: blue;
+      background: red;
       border: 1px solid #000;
       border-radius: 5px;
       height: 10px;
@@ -43,7 +43,7 @@
       height: 100%;
       width: 0;
       border-radius: 4px;
-      background: red;
+      background: blue;
       transition: 0.3s;
     }
     
@@ -333,8 +333,8 @@ function odds(selected_val)
       
       updateProgressBar(value);
     }
-    console.log("PREDICTION: ",preds[0][selected_val])
-    handleInput(Math.round(preds[0][selected_val]));
+    console.log("PREDICTION: ",preds[1][selected_val])
+    handleInput(Math.round(preds[1][selected_val]));
     //End-edit
 }
 
@@ -413,7 +413,7 @@ function bubbleChart(selected_val) {
     // size bubbles based on area
     const radiusScale = d3.scaleSqrt()
       .domain([0, maxSize])
-      .range([0, 20]) //change for size
+      .range([0, 30]) //change for size
 
     // use map() to convert raw data into node data
     const myNodes = rawData.map(d => ({
