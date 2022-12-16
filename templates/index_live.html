@@ -85,10 +85,31 @@
 
     .centered {
       position: absolute;
-      top: 13%;
+      top: 13.5%;
       left: 57%;
       transform: translate(-50%, -50%);
       text-align: center;
+    }
+    
+    .button1 {
+      background-color: orange; 
+      width: 50px;
+      height: 30px;
+      color: black; 
+      border: 1px solid red;
+      border-radius: 12px;
+    }
+    
+    .button1:hover {
+      background-color: red;
+      color: white;
+      box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+    }
+    
+    .button1:active {
+      background-color: red;
+      box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+      transform: translateY(4px);
     }
     
   </style>
@@ -107,7 +128,7 @@
   <h1>Game Time (min): <span id="showtime"></span></h1>
 </div>
 <div class="centered">
-<button id="Button">Live</button><br>
+<button class = "button button1" id="Button">Live</button><br>
 </div>
 <div class="slidecontainer">
   <input type="range" min="1" max="29" value="1" class="slider" id="time">
@@ -270,8 +291,16 @@ function killlineGraph(selected_val)
     console.log('Finally')
     console.log(arr)
     
+    var myColor = d3.scaleOrdinal(d3.schemeSet3);
+    
     var xScale = d3.scaleLinear().domain([0, killdiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
+    
+    svg3.append("path")
+        .attr("d","M-40,-19 h"+370+" a20,20 0 0 1 20,20 v"+307+" a20,20 0 0 1 -20,20 h-"+370+" a20,20 0 0 1 -20,-20 v-"+307+" a20,20 0 0 1 20,-20 z")
+        .attr("stroke", "#D7942E")
+        .attr("fill", "none")
+        .attr("stroke-width","18");
     
     svg3.append("g")
          .attr("transform", "translate(0," + height + ")")
@@ -283,8 +312,10 @@ function killlineGraph(selected_val)
     svg3.append("path")
         .datum(arr) 
         .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
+        .attr("stroke", function() {
+          return d3.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
+        })
+        .attr("stroke-width", 5)
         .attr("d", d3.line()
                     .x(function(d) { return xScale(d[0]); }) 
                     .y(function(d) { return yScale(d[1]); })
@@ -292,14 +323,14 @@ function killlineGraph(selected_val)
 
     svg3.append("text")
 	  .attr("x", width / 2)
-	  .attr("y", height + 50)
+	  .attr("y", height + 35)
 	  .attr("text-anchor", "middle")
 	  .style("font-size", "18px")
 	  .style("max-width", 400)
 	  .text("Time(mins)");
    
    svg3.append("g")
-      .attr('transform', 'translate(' + -45 + ', ' + height / 2 + ')')
+      .attr('transform', 'translate(' + -35 + ', ' + height / 2 + ')')
       .append("text")
 	  .attr("text-anchor", "middle")
 	  .style("font-size", "18px")

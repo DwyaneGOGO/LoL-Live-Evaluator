@@ -90,14 +90,31 @@
       text-align: center;
     }
     
+    .button1 {
+      background-color: #6495ED; 
+      width: 50px;
+      height: 30px;
+      color: black; 
+      border: 1px solid blue;
+      border-radius: 12px;
+    }
+
+    .button1:hover {
+      background-color: #00308F;
+      color: white;
+      box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+    }
+
+    .button1:active {
+      background-color: #00308F;
+      box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+      transform: translateY(4px);
+    }
   </style>
 </head>
 
 <!-- <body> 
-<p>
-  <label>time</label>
-  <input type="number" min="1" max="29" step="1" value="1" id="time">
-</p> -->
+ -->
 
 <div class="header">
   <h1>LoL Game Predictor</h1>
@@ -110,7 +127,7 @@
   <h1>Next Frame (4 mins): </h1>
 </div>
 <div class="centered">
-<button id="Button">Next</button><br>
+<button class = "button button1" id="Button">Next</button><br>
 </div>
 <div class="slidecontainer">
   <input type="range" min="1" max="29" value="1" class="slider" id="time">
@@ -154,7 +171,7 @@ function goldlineGraph(selected_val)
 {
     var margin = {top: 20, right: 50, bottom: 50, left: 60},
         width = 460 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
+        height = 460 - margin.top - margin.bottom;
     width = width - 50
     height = height - 50
     // append the svg object to the body of the page
@@ -163,7 +180,7 @@ function goldlineGraph(selected_val)
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .style("position","fixed")
-        .style("top","45%")
+        .style("top","40%")
         .style("left","10%")
         .style('background', 'white')
       .append("g")
@@ -171,7 +188,10 @@ function goldlineGraph(selected_val)
               "translate(" + margin.left + "," + margin.top + ")");
               
     console.log('Here')
+    console.log('data3',data[3])
+    data[3] = Object.values(data[3])
     var golddiff = data[3].slice(0, selected_val);
+  
     console.log('Gold here: ', golddiff, selected_val)
     
     min = Math.min(...golddiff)
@@ -195,18 +215,27 @@ function goldlineGraph(selected_val)
     var xScale = d3.scaleLinear().domain([0, golddiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
     
+
     svg2.append("g")
          .attr("transform", "translate(0," + height + ")")
          .call(d3.axisBottom(xScale));
         
     svg2.append("g")
          .call(d3.axisLeft(yScale));
-
+    
+    svg2.append("path")
+        .attr("d","M-40,-19 h"+370+" a20,20 0 0 1 20,20 v"+370+" a20,20 0 0 1 -20,20 h-"+370+" a20,20 0 0 1 -20,-20 v-"+370+" a20,20 0 0 1 20,-20 z")
+        .attr("stroke", "#002D62")
+        .attr("fill", "none")
+        .attr("stroke-width","15");
+    
     svg2.append("path")
         .datum(arr) 
         .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
+        .attr("stroke", function() {
+          return d3.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
+        })        
+        .attr("stroke-width", 5)
         .attr("d", d3.line()
                     .x(function(d) { return xScale(d[0]); }) 
                     .y(function(d) { return yScale(d[1]); })
@@ -214,14 +243,14 @@ function goldlineGraph(selected_val)
 
     svg2.append("text")
 	  .attr("x", width / 2)
-	  .attr("y", height + 50)
+	  .attr("y", height + 35)
 	  .attr("text-anchor", "middle")
 	  .style("font-size", "18px")
 	  .style("max-width", 400)
 	  .text("Time(mins)");
    
    svg2.append("g")
-      .attr('transform', 'translate(' + -45 + ', ' + height / 2 + ')')
+      .attr('transform', 'translate(' + -35 + ', ' + height / 2 + ')')
       .append("text")
 	  .attr("text-anchor", "middle")
 	  .style("font-size", "18px")
@@ -234,7 +263,7 @@ function killlineGraph(selected_val)
 {
     var margin = {top: 20, right: 50, bottom: 50, left: 60},
         width = 460 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
+        height = 460 - margin.top - margin.bottom;
     width = width - 50
     height = height - 50
     // append the svg object to the body of the page
@@ -243,7 +272,7 @@ function killlineGraph(selected_val)
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .style("position","fixed")
-        .style("top","45%")
+        .style("top","40%")
         .style("left","68%")
         .style('background', 'white')
       .append("g")
@@ -251,6 +280,7 @@ function killlineGraph(selected_val)
               "translate(" + margin.left + "," + margin.top + ")");
               
     console.log('Here')
+    data[8] = Object.values(data[8])
     var killdiff = data[8].slice(0, selected_val);
     console.log(killdiff)
     
@@ -272,9 +302,21 @@ function killlineGraph(selected_val)
     console.log('Finally')
     console.log(arr)
     
+    var myColor = d3.scaleOrdinal(d3.schemeSet3);
+ 
+
+
+
+
     var xScale = d3.scaleLinear().domain([0, killdiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
     
+    svg3.append("path")
+        .attr("d","M-40,-19 h"+370+" a20,20 0 0 1 20,20 v"+370+" a20,20 0 0 1 -20,20 h-"+370+" a20,20 0 0 1 -20,-20 v-"+370+" a20,20 0 0 1 20,-20 z")
+        .attr("stroke", "#002D62")
+        .attr("fill", "none")
+        .attr("stroke-width","15");
+        
     svg3.append("g")
          .attr("transform", "translate(0," + height + ")")
          .call(d3.axisBottom(xScale));
@@ -285,8 +327,10 @@ function killlineGraph(selected_val)
     svg3.append("path")
         .datum(arr) 
         .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
+        .attr("stroke", function() {
+          return d3.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
+        })        
+        .attr("stroke-width", 5)
         .attr("d", d3.line()
                     .x(function(d) { return xScale(d[0]); }) 
                     .y(function(d) { return yScale(d[1]); })
@@ -294,14 +338,14 @@ function killlineGraph(selected_val)
 
     svg3.append("text")
 	  .attr("x", width / 2)
-	  .attr("y", height + 50)
+	  .attr("y", height + 35)
 	  .attr("text-anchor", "middle")
 	  .style("font-size", "18px")
 	  .style("max-width", 400)
 	  .text("Time(mins)");
    
    svg3.append("g")
-      .attr('transform', 'translate(' + -45 + ', ' + height / 2 + ')')
+      .attr('transform', 'translate(' + -35 + ', ' + height / 2 + ')')
       .append("text")
 	  .attr("text-anchor", "middle")
 	  .style("font-size", "18px")

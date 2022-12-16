@@ -68,6 +68,46 @@
   width: 150px;
   border-radius: 50%;
 }
+.button1 {
+  background-color: violet; 
+  width: 60px;
+  height: 30px;
+  color: black; 
+  border: 1px solid blue;
+  border-radius: 12px;
+}
+
+.button1:hover {
+  background-color: #00308F;
+  color: white;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.button1:active {
+  background-color: #00308F;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+  transform: translateY(4px);
+}
+.button2 {
+  background-color: orange; 
+  width: 60px;
+  height: 30px;
+  color: black; 
+  border: 1px solid red;
+  border-radius: 12px;
+}
+
+.button2:hover {
+  background-color: red;
+  color: white;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.button2:active {
+  background-color: red;
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+  transform: translateY(4px);
+}
 </style>
 <body>
 <script src="http://code.jquery.com/jquery.min.js"></script>
@@ -76,7 +116,7 @@
     <img src="https://www.shutterstock.com/image-vector/merger-acquisition-due-diligence-concept-260nw-1669864237.jpg" alt="Avatar woman">
     <h2 class="header1">Recorded Matches</h2>
     <input type="text" id="id" name="id"><br>
-    <button id="idButton">Submit</button><br>
+    <button class = "button button1" id="idButton">Submit</button><br>
   </div>
 </div>
 
@@ -84,7 +124,7 @@
   <div class="centered">
     <img src="https://static.vecteezy.com/system/resources/previews/005/260/719/original/live-stream-live-icon-live-streaming-icon-symbol-free-vector.jpg" alt="Avatar man">
     <h2 class="header2">Live Evaluation</h2>
-    <button id="LiveButton">Next</button><br>
+    <button class = "button button2" id="LiveButton">Next</button><br>
   </div>
 </div>
 
