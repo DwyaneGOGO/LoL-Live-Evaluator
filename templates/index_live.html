@@ -309,7 +309,7 @@ function killlineGraph(selected_val)
     svg3.append("g")
          .call(d3.axisLeft(yScale));
 
-    svg3.append("path")
+    path = svg3.append("path")
         .datum(arr) 
         .attr("fill", "none")
         .attr("stroke", function() {
@@ -320,7 +320,21 @@ function killlineGraph(selected_val)
                     .x(function(d) { return xScale(d[0]); }) 
                     .y(function(d) { return yScale(d[1]); })
                     );
+    
+    const pathLength = path.node().getTotalLength();
+    
+    const transitionPath = d3
+      .transition()
+      .ease(d3.easeSin)
+      .duration(800);
+    
+    path
+      .attr("stroke-dashoffset", pathLength)
+      .attr("stroke-dasharray", pathLength)
+      .transition(transitionPath)
+      .attr("stroke-dashoffset", 0);
 
+    
     svg3.append("text")
 	  .attr("x", width / 2)
 	  .attr("y", height + 35)
