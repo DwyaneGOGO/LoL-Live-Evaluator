@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Columbia EECS E6893 Big Data Analytics
 """
 This is the main code for running our application.
 It defines and runs our flask application.
