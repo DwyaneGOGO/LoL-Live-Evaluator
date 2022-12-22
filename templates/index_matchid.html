@@ -26,26 +26,28 @@
       font-size: 25px;
     }
     
-    .progress {
+    /* Style the prediction odds bar */
+    .odds {
       margin: 50px auto;
       padding: 0px;
       width: 100%;
       max-width: 500px;
-      background: blue;
+      background: red;
       border: 1px solid #000;
       border-radius: 5px;
       height: 10px;
       overflow: hidden;
     }
 
-    .progress .progress__bar {
+    .odds .odds__bar {
       height: 100%;
       width: 0;
       border-radius: 4px;
-      background: red;
+      background: blue;
       transition: 0.3s;
     }
     
+    /* Style the timestamp slider*/
     .slidecontainer {
       width: 40%;
       margin-left: auto;
@@ -62,7 +64,8 @@
       -webkit-transition: .2s;
       transition: opacity .2s;
     }
-
+    
+    /* Change slider opacity if pointer over bar */
     .slider:hover {
       opacity: 1;
     }
@@ -90,6 +93,7 @@
       text-align: center;
     }
     
+    /* Style the button for next time frame */
     .button1 {
       background-color: #6495ED; 
       width: 50px;
@@ -98,13 +102,15 @@
       border: 1px solid blue;
       border-radius: 12px;
     }
-
+    
+    /* Change button color and shadow when mouse hovers over it */
     .button1:hover {
       background-color: #00308F;
       color: white;
       box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
     }
-
+    
+    /* Add box shadow and movement when button clicked */
     .button1:active {
       background-color: #00308F;
       box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
@@ -113,12 +119,13 @@
   </style>
 </head>
 
-<!-- <body> 
- -->
+<body>
 
 <div class="header">
   <h1>LoL Game Predictor</h1>
 </div>
+
+<!-- Show game time from the selected slider timestamp or frame from button -->
 <div class=" subheader">
   <h1>Game Time (min): <span id="showtime"></span></h1>
 </div>
@@ -131,7 +138,6 @@
 </div>
 <div class="slidecontainer">
   <input type="range" min="1" max="29" value="1" class="slider" id="time">
-  <!-- <p>Game Time (min): <span id="showtime"></span></p> -->
 </div>
 
 <div class="subheader">
@@ -140,11 +146,11 @@
 
 <div id = 'vis'></div>
 
-<div class="progress"> 
-  <div id="download" class="progress__bar"></div>
+<div class="odds"> 
+  <div id="download" class="odds__bar"></div>
 </div>
 <script>
-
+// Receive data from server.py using jinja
 var both_data = {{ lst|tojson }}
 for (let i = 0; i < both_data.length; i++) {
   if(i==0){var data = both_data[i]}
@@ -152,6 +158,8 @@ for (let i = 0; i < both_data.length; i++) {
 }
 
 console.log(data)
+
+//reformat raw bubble chart data to appropriate format
 
 var headers = ['val','id','groupid','size'];
 var bubble = [];
@@ -164,9 +172,8 @@ for (let i = 0; i < bubble_raw.length; i++) {
   bubble_raw_dict = {};
 }
 bubble.columns = headers
-console.log('BUBBLE:',bubble)
 
-
+// goldlineGraph function creates a new svg element for gold difference taken from data and plots line graph
 function goldlineGraph(selected_val)
 {
     var margin = {top: 20, right: 50, bottom: 50, left: 60},
@@ -174,7 +181,7 @@ function goldlineGraph(selected_val)
         height = 460 - margin.top - margin.bottom;
     width = width - 50
     height = height - 50
-    // append the svg object to the body of the page
+    
     var svg2 = d3.select("#vis")
       .append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -186,19 +193,15 @@ function goldlineGraph(selected_val)
       .append("g")
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
-              
-    console.log('Here')
-    console.log('data3',data[3])
+    // Get golddiff from data
     data[3] = Object.values(data[3])
     var golddiff = data[3].slice(0, selected_val);
-  
-    console.log('Gold here: ', golddiff, selected_val)
     
+    // Get max and min values for scaling line graph
     min = Math.min(...golddiff)
     max = Math.max(...golddiff)
-    console.log(min)
-    console.log(max)
      
+    // reformat data to appropriate format for line graph
     var arr = [];
     var temp_arr = [];
     var count = 1;
@@ -209,9 +212,11 @@ function goldlineGraph(selected_val)
         temp_arr = [];
         count += 1;
     }
-    console.log('Finally')
-    console.log(arr)
     
+    // Define color scale for line graph
+    var myColor = d3.scaleOrdinal(d3.schemeSet3);
+    
+    // Define x and y scales for line graph
     var xScale = d3.scaleLinear().domain([0, golddiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
     
@@ -229,6 +234,7 @@ function goldlineGraph(selected_val)
         .attr("fill", "none")
         .attr("stroke-width","15");
     
+    // Use random color for path in line graph. Also display with appropriate data for graph
     path = svg2.append("path")
         .datum(arr) 
         .attr("fill", "none")
@@ -240,19 +246,24 @@ function goldlineGraph(selected_val)
                     .x(function(d) { return xScale(d[0]); }) 
                     .y(function(d) { return yScale(d[1]); })
                     );
+    // Get path length for drawing animation
     const pathLength = path.node().getTotalLength();
+    console.log("pathLength:",pathLength)
     
+    //Add a 0.9 second delay transition everytime line graph is drawn to make changes in graph feel more smooth
     const transitionPath = d3
       .transition()
       .ease(d3.easeSin)
-      .duration(800);
+      .duration(900);
     
+    // Define attributes for drawing transition in path
     path
       .attr("stroke-dashoffset", pathLength)
       .attr("stroke-dasharray", pathLength)
       .transition(transitionPath)
       .attr("stroke-dashoffset", 0);
       
+    // Add text to x-axis and style appropriately
     svg2.append("text")
 	  .attr("x", width / 2)
 	  .attr("y", height + 35)
@@ -261,6 +272,7 @@ function goldlineGraph(selected_val)
 	  .style("max-width", 400)
 	  .text("Time(mins)");
    
+   // Add text to y-axis and style appropriately
    svg2.append("g")
       .attr('transform', 'translate(' + -35 + ', ' + height / 2 + ')')
       .append("text")
@@ -271,6 +283,7 @@ function goldlineGraph(selected_val)
 	  .text("Gold Difference");
 }
 
+// killlineGraph function creates a new svg element for kill difference taken from data and plots line graph
 function killlineGraph(selected_val)
 {
     var margin = {top: 20, right: 50, bottom: 50, left: 60},
@@ -278,7 +291,7 @@ function killlineGraph(selected_val)
         height = 460 - margin.top - margin.bottom;
     width = width - 50
     height = height - 50
-    // append the svg object to the body of the page
+    
     var svg3 = d3.select("#vis")
       .append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -291,16 +304,18 @@ function killlineGraph(selected_val)
         .attr("transform",
               "translate(" + margin.left + "," + margin.top + ")");
               
-    console.log('Here')
+    // Get killdiff from data
     data[8] = Object.values(data[8])
     var killdiff = data[8].slice(0, selected_val);
     console.log(killdiff)
     
+    // Get max and min values for scaling line graph
     min = Math.min(...killdiff)
     max = Math.max(...killdiff)
     console.log(min)
     console.log(max)
      
+    // reformat data to appropriate format for line graph
     var arr = [];
     var temp_arr = [];
     var count = 1;
@@ -314,15 +329,14 @@ function killlineGraph(selected_val)
     console.log('Finally')
     console.log(arr)
     
+    // Define color scale for line graph
     var myColor = d3.scaleOrdinal(d3.schemeSet3);
- 
 
-
-
-
+    // Define x and y scales for line graph
     var xScale = d3.scaleLinear().domain([0, killdiff.length]).range([0, width]),
             yScale = d3.scaleLinear().domain([min, max]).range([height, 0]);
     
+    // Append path to make the graphs look curved at the edges and style
     svg3.append("path")
         .attr("d","M-40,-19 h"+370+" a20,20 0 0 1 20,20 v"+370+" a20,20 0 0 1 -20,20 h-"+370+" a20,20 0 0 1 -20,-20 v-"+370+" a20,20 0 0 1 20,-20 z")
         .attr("stroke", "#002D62")
@@ -335,7 +349,8 @@ function killlineGraph(selected_val)
         
     svg3.append("g")
          .call(d3.axisLeft(yScale));
-
+    
+    // Use random color for path in line graph. Also display with appropriate data for graph
     path = svg3.append("path")
         .datum(arr) 
         .attr("fill", "none")
@@ -348,19 +363,23 @@ function killlineGraph(selected_val)
                     .y(function(d) { return yScale(d[1]); })
                     );
     
+    // Get path length for drawing animation
     const pathLength = path.node().getTotalLength();
     
+    //Add a 0.9 second delay transition everytime line graph is drawn to make changes in graph feel more smooth
     const transitionPath = d3
       .transition()
       .ease(d3.easeSin)
-      .duration(800);
+      .duration(900);
     
+    // Define attributes for drawing transition in path
     path
       .attr("stroke-dashoffset", pathLength)
       .attr("stroke-dasharray", pathLength)
       .transition(transitionPath)
       .attr("stroke-dashoffset", 0);
-
+    
+    // Add text to x-axis and style appropriately
     svg3.append("text")
 	  .attr("x", width / 2)
 	  .attr("y", height + 35)
@@ -369,6 +388,7 @@ function killlineGraph(selected_val)
 	  .style("max-width", 400)
 	  .text("Time(mins)");
    
+   // Add text to y-axis and style appropriately
    svg3.append("g")
       .attr('transform', 'translate(' + -35 + ', ' + height / 2 + ')')
       .append("text")
@@ -379,20 +399,21 @@ function killlineGraph(selected_val)
 	  .text("Kill Difference");
 }
 
+// Function to update the predicted odds bar in code
 function odds(selected_val)
 {
-    // Edited here- load data
+    // Access the preogress bar as a variable
     let progressbar = document.getElementById("download");
 
+    // Function that updates progress bar based on value of blue team winning
     function updateProgressBar(value) {
       if (value >= 0 && value <= 100) {
         progressbar.style.width = value + "%"; 
       }
     }
 
+    // Function that maes sure value is correct and does not exceed values before updating bar
     function handleInput(value) {
-      console.log("hello")
-      //let value = document.getElementById('set-value').value;
       if (value > 100) {
         value = 100;
         document.getElementById('set-value').value = 100;
@@ -404,12 +425,11 @@ function odds(selected_val)
       
       updateProgressBar(value);
     }
-    console.log(data[0][selected_val])
-    handleInput(Math.round(data[0][selected_val]));
-    //End-edit
+    // Call function to update bar based on prediction of blue team winning from deep learning model
+    handleInput(Math.round(data[1][selected_val]));
 }
 
-// bubbleChart creation function; instantiate new bubble chart given a DOM element to display it in and a dataset to visualise
+// Function to instantiate new bubble chart given a DOM element to display it in and a dataset to visualise
 function bubbleChart(selected_val) {
   const width = 940;
   const height = 500;
@@ -430,14 +450,8 @@ function bubbleChart(selected_val) {
   function charge(d) {
     return Math.pow(d.radius, 2.0) * 0.01
   }
-
-  // create a force simulation and add forces to it
-  //const simulation = d3.forceSimulation()
-  //  .force('charge', d3.forceManyBody().strength(charge))
-  //  // .force('center', d3.forceCenter(centre.x, centre.y))
-  //  .force('x', d3.forceX().strength(forceStrength).x(centre.x))
-  //  .force('y', d3.forceY().strength(forceStrength).y(centre.y))
-  //  .force('collision', d3.forceCollide().radius(d => d.radius + 1));
+  
+  //Define forceX and forceY based on team of bubble
   
   var forceX = d3.forceX(function(d){
       if(d.groupid == 1){
@@ -457,9 +471,9 @@ function bubbleChart(selected_val) {
       }
   }).strength(forceStrength)
   
+  // create a force simulation and add forces to it
   const simulation = d3.forceSimulation()
     .force('charge', d3.forceManyBody().strength(charge))
-    // .force('center', d3.forceCenter(centre.x, centre.y))
     .force('x', forceX)
     .force('y', forceY)
     .force('collision', d3.forceCollide().radius(d => d.radius + 1));
@@ -472,13 +486,13 @@ function bubbleChart(selected_val) {
   	.domain(["1", "2", "3", "5", "99"])
   	.range(["#FF0000","#0000FF"]);
 
-  // data manipulation function takes raw data from csv and converts it into an array of node objects
+  // data manipulation function takes raw data and converts it into an array of node objects
   // each node will store data and visualisation values to draw a bubble
-  // rawData is expected to be an array of data objects, read in d3.csv
+  // rawData is expected to be an array of data objects
   // function returns the new node array, with a node for each element in the rawData input
+  
   function createNodes(rawData) {
     // use max size in the data as the max in the scale's domain
-    // note we have to ensure that size is a number
     const maxSize = d3.max(rawData, d => +d.size);
 
     // size bubbles based on area
@@ -502,11 +516,9 @@ function bubbleChart(selected_val) {
   // prepares rawData for visualisation and adds an svg element to the provided selector and starts the visualisation process
   let chart = function chart(selector, rawData) {
     // convert raw data into nodes data
-    console.log(rawData[0]['val'])
-    //console.log(rawData)
+    
+    //Convert rawdata into usable format for chosen time and save as newData
     newData = [];
-    console.log(selected_val)
-    //var selected_val = 29;
     for (const property in rawData) {
           console.log(`${property}: ${rawData[property]}`);
           for (const raw_property in rawData[property]) {
@@ -522,13 +534,7 @@ function bubbleChart(selected_val) {
     nodes = createNodes(newData);
 
     // create svg element inside provided selector
-    
-    //position: fixed;
-    //top: 50%;
-    //left: 50%;
-    //transform: translate(-50%, -50%);
-
-
+    // Manually set positions to appropriate position using position fixed and style svg
     svg = d3.select(selector)
       .append('svg')
       .attr('width', width)
@@ -538,11 +544,11 @@ function bubbleChart(selected_val) {
       .style("left","35%")
       .style('background', 'url("https://www.mobafire.com/images/ward-map/map-full-dimmed-opt.jpg") no-repeat')
       .style('background-size', '60% 100%');
-      //.style('background-position', '20px top');
-    //edits
-   // bgrnd = d3.select(selector)
-   //           .attr("background",d => url("https://lolfanatics.com/wp-content/uploads/2022/04/League-of-Legends-Locations-Map-Guide.jpg") )
+
     //1->Red, 2->Blue Map->map
+    
+    //Defining def along with patterns for adding images to each bubble in bubble chart
+    
     var defs = svg.append("defs");
     
     defs.append("pattern")
@@ -677,8 +683,6 @@ function bubbleChart(selected_val) {
       .attr("xmlns:xlink","http://www.w3.org/1999/xlink")
       .attr("xlink:href","https://images2.minutemediacdn.com/image/fetch/w_2000,h_2000,c_fit/https%3A%2F%2Fblogoflegends.com%2Ffiles%2F2016%2F11%2Fnpg-inhibitor.jpg")//Old version. Update it
     
-    
-    //end-edits
 
     // bind nodes data to circle elements
     const elements = svg.selectAll('.bubble')
@@ -686,12 +690,7 @@ function bubbleChart(selected_val) {
       .enter()
       .append('g');
 
-    //bubbles = elements
-    //  .append('circle')
-    //  .classed('bubble', true)
-    //  .attr('r', d => d.radius)
-    //  .attr('fill', d => fillColour(d.groupid))
-    
+    //Note that fill changes based on id and groupid to show appropriate image for each bubble
     bubbles = elements
       .append('circle')
       .classed('bubble', true)
@@ -731,42 +730,42 @@ function bubbleChart(selected_val) {
   return chart;
 }
 
-// new bubble chart instance
+// new bubble chart instance with initial selected value
 var selected_val = 1;
 let myBubbleChart = bubbleChart(selected_val);
 
-// function called once promise is resolved and data is loaded from csv
+// function called once promise is resolved and data is sent to html file
 // calls bubble chart function to display inside #vis div
 function display(data) {
-  console.log('BOOOOO:',data)
   myBubbleChart('#vis', data);
 }
+
+// Function used for clearning svg elements from specific div everytime new timestamp is selected
 function clear(selector){
     d3.select(selector)
       .selectAll('svg')
       .remove()
 }
+
+// Get values from slider and display in output 
 var slider = document.getElementById("time");
   var output = document.getElementById("showtime");
   output.innerHTML = slider.value;
 
-var ref_value = 1;
-
+// Function to display new bubble chart, line graph and update odds bar
 function run(i){
     slider.value = i;
     output.innerHTML = slider.value;
     console.log(slider.value)
     selected_val = slider.value
-    //myBubbleChart = null;
     myBubbleChart = bubbleChart(selected_val);
-    clear('#vis')
     odds(selected_val)
-    // d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
     display(bubble)
     goldlineGraph(selected_val)
     killlineGraph(selected_val)
     }
 
+// Everytime slider value changes, display new bubble chart, line graph and update odds bar
   slider.oninput = function() {
     output.innerHTML = this.value;
     console.log(this.value)
@@ -774,57 +773,49 @@ function run(i){
     s = parseInt(selected_val)+1;
     e = s + 4;
     console.log('Refs:',s,e)
-    //myBubbleChart = null;
     myBubbleChart = bubbleChart(selected_val);
-    clear('#vis')
     odds(selected_val)
-    // d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
     display(bubble)
     goldlineGraph(selected_val)
     killlineGraph(selected_val)
     }
-// d3.csv('https://raw.githubusercontent.com/AymanTalkhani/Test/main/sample-output-modded-all.csv').then(display);
+
+// Initialization
 display(bubble)
 
-//for (let i = 1; i < 30; i++) {
-//  setTimeout (function(){run(i), 1000)
-//  // setTimeout(() => {  run(i); }, 5000);
-// }
-
+// Define sleep for javascript using promise
 var sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
-const repeatedGreetings = async (s,e) => {
+// Function that will call 'run' from start index to end index with a 1 sec delay
+const repeated = async (s,e) => {
 
 for (let i = s; i < e; i++) {
     await sleep (1000);
     run(i)
  }
 }
+
+// Define initial start and end indices 
 var s = 1;
 var e = 5;
-repeatedGreetings(s,e);
+// Call function for first 4 frames
+repeated(s,e);
+
+// Update indices
 s = e;
 e = e+4;
+
+// Call this function everytime Next button in clicked
 document.getElementById("Button").onclick = function () {
         if(e>30){e = 30;}
         if(s>29){s = 29;}
-        repeatedGreetings(s,e);
+        
+        // Update to next 4 frames with delay and show
+        repeated(s,e);
         s = e;
         e = e+4;
         if(e>30){e = 30;}
     };
-
-function temp()
-{if(slider.value<30){
-console.log(slider.value)
-slider.value = slider.value+1;}
-}
-// while (selected_val == ref_value) {
-  // await setTimeout(60000)
-//  selected_val +=1
-//  ref_value = selected_val
-//  setTimeout(run(selected_val), 3000000);
-// }
 
 </script>
 </body>

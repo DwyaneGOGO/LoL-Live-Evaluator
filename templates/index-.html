@@ -37,7 +37,6 @@
 /* Control the left side */
 .left {
   left: 0;
-  // background-color: #324ab2;
   background-image: url("https://cdna.artstation.com/p/assets/images/images/012/198/494/large/kristian-akerstrom-analytics-dashboard-overview.jpg?1533572173");
   background-repeat: no-repeat;
   background-size: cover; 
@@ -54,7 +53,7 @@
   color: black;
 }
 
-/* If you want the content centered horizontally and vertically */
+/*To center content horizontally and vertically for either side */
 .centered {
   position: absolute;
   top: 50%;
@@ -63,11 +62,13 @@
   text-align: center;
 }
 
-/* Style the image inside the centered container, if needed */
+/* To style the image inside the centered container */
 .centered img {
   width: 150px;
   border-radius: 50%;
 }
+
+/* Style the button for submitting match id */
 .button1 {
   background-color: violet; 
   width: 60px;
@@ -77,17 +78,21 @@
   border-radius: 12px;
 }
 
+/* Change button color and shadow when mouse hovers over it */
 .button1:hover {
   background-color: #00308F;
   color: white;
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
+/* Add box shadow and movement when button clicked */
 .button1:active {
   background-color: #00308F;
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
   transform: translateY(4px);
 }
+
+/* Style the button for live match */
 .button2 {
   background-color: orange; 
   width: 60px;
@@ -97,12 +102,14 @@
   border-radius: 12px;
 }
 
+/* Change button color and shadow when mouse hovers over it */
 .button2:hover {
   background-color: red;
   color: white;
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
+/* Add box shadow and movement when button clicked */
 .button2:active {
   background-color: red;
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
@@ -129,6 +136,11 @@
 </div>
 
 <script>
+
+/* Check if the id-button is clicked, and post data entered in the id 
+text input to the server.py flask app python code. Also change href to the
+index_matchid.html webpage*/
+
 document.getElementById("idButton").onclick = function () {
         data = document.getElementById("id").value
         console.log(data)
@@ -137,6 +149,9 @@ document.getElementById("idButton").onclick = function () {
         });
         location.href = "/index_matchid";
     };
+
+/* Check if the Live button is clicked, and change href to the index_live.html webpage*/
+
 document.getElementById("LiveButton").onclick = function () {
         location.href = "/index_live";
     };
