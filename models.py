@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Columbia EECS E6893 Big Data Analytics
 """
-This is the main code for running our application.
-It runs our flask application.
+This includes the Deep learning model classes that we use in our application
 
 """
 
