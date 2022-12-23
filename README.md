@@ -6,7 +6,7 @@ Over the years, there has been a lot of development done in the field of competi
 
 Our implementation consists of a web-user-interface to allow players to either evaluate their League of Legends game live by leveraging a pretrained RNN deep learning model, and also allowing them to analyze previously completed game by entering the appropriate Riot match-id. Our web-interface consists of webpages written in html, javascript and d3, as well as Flask and Jinja for the back-end of the application. On the other hand, our deep learning model is trained using Pytorch and pandas.<br>
 
-Below is a system overview of our project once again for reference:![System-Overview](https://raw.githubusercontent.com/DwyaneGOGO/LoL-Live-Evaluator/main/templates/Pipeline-web.PNG)
+Below is a simplified system overview of our project for reference:![System-Overview](https://raw.githubusercontent.com/DwyaneGOGO/LoL-Live-Evaluator/main/templates/Pipeline-web.PNG)
 
 We also have a sample video of our application being used in a live match here(it shows the data being uplaoded to our gcp bucket, as well as the analysis for the first 30 mins of the game): https://youtu.be/Uubxadngviw
 
